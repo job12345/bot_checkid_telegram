@@ -258,7 +258,7 @@ Railway เป็นแพลตฟอร์ม cloud ที่เหมาะ�
      - Root Directory: / (หรือเว้นว่างไว้)
      - Service Name: telegrambot
    - ตั้งค่า Environment Variables (คลิกที่ "Variables"):
-     - `TOKEN` = `7723527281:AAFvrx8JJbQjDASvcSNkKcwPkUXy3BeYmk8`
+     - `TOKEN` = `7723527281:AAFvrx8JJbQjDASvcSNkKcwPkUXy3`
    - คลิก "Deploy" หรือ "Deploy Now" เพื่อเริ่มการ deploy
 
 4. การตรวจสอบสถานะการทำงาน:
