@@ -71,6 +71,47 @@
    sudo systemctl status telegrambot.service
    ```
 
+## การ Deploy ทางเลือกอื่นๆ
+
+### การใช้ Docker บน CasaOS
+
+1. สร้างไฟล์ Dockerfile:
+   ```
+   FROM python:3.9-slim
+   
+   WORKDIR /app
+   
+   COPY requirements.txt .
+   RUN pip install --no-cache-dir -r requirements.txt
+   
+   COPY . .
+   
+   CMD ["python", "bot.py"]
+   ```
+
+2. สร้างและรัน Docker Container:
+   ```
+   docker build -t telegram-id-bot .
+   docker run -d --name telegram-id-bot telegram-id-bot
+   ```
+
+3. หากใช้ CasaOS สามารถสร้าง App Container ใหม่และเลือก docker-compose ดังนี้:
+   ```yaml
+   version: '3'
+   services:
+     telegram-bot:
+       build: .
+       restart: always
+       container_name: telegram-id-bot
+   ```
+
+### หมายเหตุเกี่ยวกับ Cloudflare Workers
+
+โปรเจคนี้เป็น Python Bot ซึ่งไม่สามารถ deploy บน Cloudflare Workers ได้โดยตรง เนื่องจาก Cloudflare Workers รองรับเฉพาะ JavaScript/TypeScript
+หากต้องการใช้ Cloudflare คุณสามารถลองตัวเลือกอื่นๆ เช่น:
+- Cloudflare Pages ร่วมกับ Functions (แต่ยังมีข้อจำกัดสำหรับการรันแอปพลิเคชัน Python)
+- บริการ Cloud ทั่วไปที่รองรับ Python เช่น Heroku, Railway, Render, หรือ AWS Lambda
+
 ## พัฒนาโดย
 
 MR.j
