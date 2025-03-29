@@ -40,18 +40,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     message = (
-        f"สวัสดี {user.first_name}!
-"
-        f"ไอดีของคุณคือ: {user.id}
-"
-        f"ชื่อผู้ใช้: @{user.username if user.username else 'ไม่มี'}
-
-"
-        "Hello {user.first_name}!
-"
-        "Your ID is: {user.id}
-"
-        "Username: @{user.username if user.username else 'None'}"
+        f"สวัสดี {user.first_name}!\n"
+        f"ไอดีของคุณคือ: {user.id}\n"
+        f"ชื่อผู้ใช้: @{user.username if user.username else 'ไม่มี'}\n\n"
+        f"Hello {user.first_name}!\n"
+        f"Your ID is: {user.id}\n"
+        f"Username: @{user.username if user.username else 'None'}"
     )
     await update.message.reply_text(message, reply_markup=reply_markup)
 
