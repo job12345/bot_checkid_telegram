@@ -37,16 +37,51 @@
 2. การรันผ่าน Docker ใน CasaOS:
    - ใช้ Terminal ใน CasaOS หรือเชื่อมต่อผ่าน SSH:
      ```
+     # เชื่อมต่อเข้า SSH ของ Raspberry Pi โดยเปลี่ยน [IP-ADDRESS] เป็น IP จริงของเครื่อง Pi
      ssh pi@[IP-ADDRESS]
+     
+     # หรือถ้าใช้ Terminal ในหน้าเว็บ CasaOS ให้คลิกที่ไอคอน Terminal
      ```
    - นำเข้าไปยังโฟลเดอร์ที่มีไฟล์บอท:
      ```
+     # สร้างโฟลเดอร์ถ้ายังไม่มี
+     mkdir -p /opt/casaos/telegram-bot
+     
+     # คัดลอกไฟล์จาก GitHub
+     cd /opt/casaos/telegram-bot
+     git clone https://github.com/job12345/bot_checkid_telegram.git .
+     # หรือถ้ามีไฟล์อยู่แล้ว
      cd /path/to/bot_checkid_telegram
+     ```
+   - สร้างไฟล์ Dockerfile:
+     ```
+     # สร้างไฟล์ Dockerfile
+     cat > Dockerfile << 'EOF'
+     FROM python:3.9-slim
+     
+     WORKDIR /app
+     
+     COPY requirements.txt .
+     RUN pip install --no-cache-dir -r requirements.txt
+     
+     COPY . .
+     
+     CMD ["python", "bot.py"]
+     EOF
      ```
    - สร้าง Docker container:
      ```
+     # สร้าง Docker image
      docker build -t telegram-id-bot .
+     
+     # ตรวจสอบว่า image สร้างเสร็จแล้ว
+     docker images | grep telegram-id-bot
+     
+     # รัน container จาก image ที่สร้าง
      docker run -d --name telegram-id-bot --restart always telegram-id-bot
+     
+     # ตรวจสอบว่า container กำลังทำงาน
+     docker ps | grep telegram-id-bot
      ```
 
 3. การใช้ CasaOS Container Apps:
