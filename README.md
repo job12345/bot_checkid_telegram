@@ -181,17 +181,60 @@
        container_name: telegram-id-bot
    ```
 
-### หมายเหตุเกี่ยวกับ Cloudflare Workers
+### การ Deploy บน Railway.com
 
-โปรเจคนี้เป็น Python Bot ซึ่งไม่สามารถ deploy บน Cloudflare Workers ได้โดยตรง เนื่องจาก Cloudflare Workers รองรับเฉพาะ JavaScript/TypeScript
-หากต้องการใช้ Cloudflare คุณสามารถลองตัวเลือกอื่นๆ เช่น:
-- Cloudflare Pages ร่วมกับ Functions (แต่ยังมีข้อจำกัดสำหรับการรันแอปพลิเคชัน Python)
-- บริการ Cloud ทั่วไปที่รองรับ Python เช่น Heroku, Railway, Render, หรือ AWS Lambda
+Railway เป็นแพลตฟอร์ม cloud ที่เหมาะกับการ deploy แอปพลิเคชัน Python ที่ต้องทำงานตลอดเวลาเช่นบอทเทเลแกรม
 
-## พัฒนาโดย
+1. ขั้นตอนการเตรียมโปรเจคให้พร้อมสำหรับ Railway:
+   - ต้องมั่นใจว่าโปรเจคของคุณมีไฟล์ต่อไปนี้:
+     - `requirements.txt` (มีอยู่แล้ว)
+     - `Procfile` (สำหรับบอกว่าจะรันคำสั่งอะไร)
+     - `railway.toml` (สำหรับกำหนดค่าการ deploy)
+   
+   - สร้างไฟล์ Procfile ในโฟลเดอร์โปรเจค:
+     ```
+     worker: python bot.py
+     ```
+     
+   - สร้างไฟล์ railway.toml ในโฟลเดอร์โปรเจค:
+     ```
+     [build]
+     builder = "nixpacks"
+     buildCommand = "pip install -r requirements.txt"
+     
+     [deploy]
+     startCommand = "python bot.py"
+     healthcheckPath = "/"
+     healthcheckTimeout = 100
+     restartPolicyType = "always"
+     ```
 
-MR.j
+2. การอัปโหลดไฟล์ไปยัง GitHub:
+   ```
+   git add Procfile railway.toml
+   git commit -m "เพิ่มไฟล์สำหรับ deploy บน Railway"
+   git push origin main
+   ```
 
-ติดต่อ: [@paybot2025](https://t.me/paybot2025)
+3. ขั้นตอนการ Deploy บน Railway ผ่านเว็บไซต์ (แนะนำ):
+   - ล็อกอินที่ [Railway Dashboard](https://railway.app/dashboard)
+   - คลิก "New Project"
+   - เลือก "Deploy from GitHub repo"
+   - เลือก repository ของคุณ (bot_checkid_telegram)
+   - หากมีการร้องขอให้กำหนดค่าเพิ่มเติม ให้ระบุ:
+     - Root Directory: / (หรือเว้นว่างไว้)
+     - Service Name: telegrambot
+   - ตั้งค่า Environment Variables (คลิกที่ "Variables"):
+     - `TOKEN` = `7723527281:AAFvrx8JJbQjDASvcSNkKcwPkUXy3BeYmk8`
+   - คลิก "Deploy" หรือ "Deploy Now" เพื่อเริ่มการ deploy
 
-บริจาค: [ทรูมันนี่วอเลต](https://tmn.app.link/UMso6vUFORb)
+4. การตรวจสอบสถานะการทำงาน:
+   - ไปที่หน้า "Deployments" ในโปรเจคของคุณบน Railway
+   - คลิกที่ deployment ล่าสุดเพื่อดูล็อก
+   - หากมีข้อผิดพลาด ให้ตรวจสอบล็อกและแก้ไขไฟล์ที่เกี่ยวข้อง
+   - บอทควรทำงานโดยอัตโนมัติหลังจาก deploy สำเร็จ
+
+5. การแก้ไขปัญหาที่พบบ่อย:
+   - หากพบข้อผิดพลาด "No start command could be found" ให้ตรวจสอบว่าไฟล์ Procfile และ railway.toml มีข้อมูลถูกต้อง
+   - หากต้องการรันคำสั่งเฉพาะบน Railway ให้ไปที่ "Deployments" > คลิก ">" ที่มุมขวาของ deployment > "Shell"
+   - หากต้องการรีสตาร์ทบอท ให้คลิกที่ "Deployments" > "Redeploy"
