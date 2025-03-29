@@ -28,6 +28,47 @@
    python bot.py
    ```
 
+### คำสั่งเฉพาะสำหรับ CasaOS บน Raspberry Pi 5
+
+1. การเข้าถึง CasaOS:
+   - เปิดเว็บเบราว์เซอร์และเข้าสู่ IP ของ Raspberry Pi 5 ที่รัน CasaOS 
+     (เช่น http://raspberrypi.local หรือ http://[IP-ADDRESS])
+
+2. การรันผ่าน Docker ใน CasaOS:
+   - ใช้ Terminal ใน CasaOS หรือเชื่อมต่อผ่าน SSH:
+     ```
+     ssh pi@[IP-ADDRESS]
+     ```
+   - นำเข้าไปยังโฟลเดอร์ที่มีไฟล์บอท:
+     ```
+     cd /path/to/bot_checkid_telegram
+     ```
+   - สร้าง Docker container:
+     ```
+     docker build -t telegram-id-bot .
+     docker run -d --name telegram-id-bot --restart always telegram-id-bot
+     ```
+
+3. การใช้ CasaOS Container Apps:
+   - เข้าไปที่หน้า Apps ใน CasaOS
+   - เลือก "New App" หรือ "Add Container"
+   - ใช้ตัวเลือก "Custom" และกรอกข้อมูลดังนี้:
+     - Container Name: telegram-id-bot
+     - Image: ให้เลือกจาก local image ที่สร้างไว้ หรือใช้ path ไปยังไฟล์ Dockerfile
+     - Network Mode: bridge
+     - Restart Policy: always
+   - กด "Deploy" เพื่อรันบอท
+
+4. การตรวจสอบสถานะ:
+   - ดูล็อกของบอท:
+     ```
+     docker logs -f telegram-id-bot
+     ```
+   - ตรวจสอบว่าคอนเทนเนอร์กำลังทำงาน:
+     ```
+     docker ps | grep telegram-id-bot
+     ```
+
 ## คำสั่งที่สามารถใช้ได้
 
 - `/start` - เริ่มใช้งานบอทและแสดงข้อมูลบัญชี
