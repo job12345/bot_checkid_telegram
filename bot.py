@@ -9,8 +9,8 @@
 import logging
 import datetime
 from collections import defaultdict
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, JobQueue
 
 # ตั้งค่า logging
 logging.basicConfig(
@@ -30,15 +30,30 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     usage_data[datetime.date.today()] += 1
 
+    # สร้างปุ่ม inline
+    keyboard = [
+        [
+            InlineKeyboardButton("Donate (TrueMoney Wallet)", url="https://tmn.app.link/UMso6vUFORb"),
+            InlineKeyboardButton("Contact Developer", url="https://t.me/paybot2025")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     message = (
-        f"สวัสดี {user.first_name}!\n"
-        f"ไอดีของคุณคือ: {user.id}\n"
-        f"ชื่อผู้ใช้: @{user.username if user.username else 'ไม่มี'}\n\n"
-        "Hello {user.first_name}!\n"
-        "Your ID is: {user.id}\n"
+        f"สวัสดี {user.first_name}!
+"
+        f"ไอดีของคุณคือ: {user.id}
+"
+        f"ชื่อผู้ใช้: @{user.username if user.username else 'ไม่มี'}
+
+"
+        "Hello {user.first_name}!
+"
+        "Your ID is: {user.id}
+"
         "Username: @{user.username if user.username else 'None'}"
     )
-    await update.message.reply_text(message)
+    await update.message.reply_text(message, reply_markup=reply_markup)
 
     # แจ้งเตือนเจ้าของบอทเมื่อมีผู้ใช้งานใหม่
     if context.bot:
@@ -55,15 +70,15 @@ async def daily_summary(context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=OWNER_ID, text=message)
 
 def main():
-    # สร้าง application
-    application = ApplicationBuilder().token(TOKEN).build()
+    # สร้าง application พร้อม JobQueue
+    application = ApplicationBuilder().token(TOKEN).post_init(lambda app: setattr(app, 'job_queue', JobQueue())).build()
 
     # เพิ่ม handler สำหรับคำสั่ง /start
     application.add_handler(CommandHandler("start", start))
 
-    # ตั้งเวลาแจ้งเตือนสรุปยอดรายวัน
+    # ตั้งเวลาแจ้งเตือนสรุปยอดรายวันเวลา 12:00 น. เวลาประเทศไทย
     job_queue = application.job_queue
-    job_queue.run_daily(daily_summary, time=datetime.time(hour=23, minute=59))
+    job_queue.run_daily(daily_summary, time=datetime.time(hour=5, minute=0))  # 5:00 UTC = 12:00 Thailand time
 
     # เริ่มการทำงานของบอท
     application.run_polling()

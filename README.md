@@ -105,3 +105,13 @@ This bot displays the Telegram ID of users when they add the bot. It also provid
 
 - บอทจะแจ้งเตือนเจ้าของ (Telegram ID: 805215455) เมื่อมีผู้ใช้งานใหม่
 - สรุปยอดการใช้งานรายวันจะถูกส่งให้เจ้าของบอททุกวันเวลา 12:00 น. เวลาประเทศไทย หรือเจ้าของสามารถทักส่วนตัวไปหาบอทเพื่อกดเมนูขอดูรายงานได้เลยทันที
+
+## Developer Information / ข้อมูลผู้พัฒนา
+
+- Developed by: MR.j
+- Contact: [@paybot2025](https://t.me/paybot2025)
+- Donate: [TrueMoney Wallet](https://tmn.app.link/UMso6vUFORb)
+
+- พัฒนาโดย: MR.j
+- ติดต่อ: [@paybot2025](https://t.me/paybot2025)
+- บริจาค: [ทรูมันนี่วอเลต](https://tmn.app.link/UMso6vUFORb)
