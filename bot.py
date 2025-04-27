@@ -11,7 +11,7 @@ import datetime
 import pytz
 from collections import defaultdict
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler, JobQueue
 
 # ตั้งค่า logging
 logging.basicConfig(
@@ -210,24 +210,25 @@ def get_owner_keyboard():
     return InlineKeyboardMarkup(keyboard)
 
 def main():
-    # สร้าง application และกำหนดให้มี job_queue
-    application = ApplicationBuilder().token(TOKEN).build()
+    # สร้าง application พร้อม job_queue
+    application = ApplicationBuilder().token(TOKEN)\
+        .job_queue(JobQueue())\
+        .build()
     
     # เพิ่ม handler สำหรับคำสั่ง
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("report", report_command))
-    
-    # เพิ่ม callback handler สำหรับปุ่ม
     application.add_handler(CallbackQueryHandler(button_callback))
     
     # ตั้งเวลาสรุปยอดรายวันเวลา 12:00 น. เวลาประเทศไทย (UTC+7)
     thai_tz = pytz.timezone('Asia/Bangkok')
     target_time = datetime.time(hour=12, minute=0, tzinfo=thai_tz)
     
-    # ถ้ามี job_queue (หากไม่มีก็ไม่ต้องตั้งเวลา)
-    if hasattr(application, 'job_queue'):
+    if application.job_queue:
         application.job_queue.run_daily(daily_summary, time=target_time)
+    else:
+        print("Warning: JobQueue is not available")
     
     # เริ่มการทำงานของบอท
     application.run_polling()
