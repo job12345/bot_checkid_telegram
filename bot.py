@@ -8,6 +8,7 @@
 
 import os
 import logging
+import functools
 from datetime import datetime, timedelta, time, date
 import pytz
 from collections import defaultdict, Counter
@@ -68,6 +69,7 @@ def is_valid_user(user) -> bool:
 
 # Decorator สำหรับจัดการข้อผิดพลาด
 def error_handler(func):
+    @functools.wraps(func)
     async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             return await func(update, context)
@@ -78,9 +80,11 @@ def error_handler(func):
                     chat_id=OWNER_ID,
                     text=f"❌ เกิดข้อผิดพลาด: {str(e)}"
                 )
-            await update.message.reply_text(
-                "ขออภัย เกิดข้อผิดพลาดบางอย่าง กรุณาลองใหม่อีกครั้งในภายหลัง"
-            )
+            if update.message:
+                await update.message.reply_text(
+                    "ขออภัย เกิดข้อผิดพลาดบางอย่าง กรุณาลองใหม่อีกครั้งในภายหลัง"
+                )
+            return None
     return wrapper
 
 @error_handler
@@ -186,6 +190,7 @@ async def daily_summary(context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=OWNER_ID, text=message)
 
 # ฟังก์ชันสำหรับการจัดการกับปุ่ม callback
+@error_handler
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user = query.from_user
@@ -197,7 +202,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await query.answer()  # ตอบกลับ callback query เพื่อหยุดการโหลด
     
-    today = datetime.date.today()
+    today = date.today()  # ใช้ date.today() แทน datetime.date.today()
     
     if query.data == "report_today":
         # รายงานวันนี้
