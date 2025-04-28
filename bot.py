@@ -14,7 +14,13 @@ from collections import defaultdict, Counter
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    CallbackQueryHandler,
+    JobQueue
+)
 
 # โหลดค่าจาก .env file
 load_dotenv()
@@ -277,10 +283,8 @@ def get_owner_keyboard():
     return InlineKeyboardMarkup(keyboard)
 
 def main():
-    # สร้าง application พร้อม job_queue
-    application = ApplicationBuilder().token(TOKEN)\
-        .job_queue(JobQueue())\
-        .build()
+    # สร้าง application
+    application = ApplicationBuilder().token(TOKEN).build()
     
     # เพิ่ม handler สำหรับคำสั่ง
     application.add_handler(CommandHandler("start", start))
@@ -292,12 +296,16 @@ def main():
     thai_tz = pytz.timezone('Asia/Bangkok')
     target_time = datetime.time(hour=12, minute=0, tzinfo=thai_tz)
     
+    # ตั้งค่า job queue
     if application.job_queue:
-        application.job_queue.run_daily(daily_summary, time=target_time)
-    else:
-        print("Warning: JobQueue is not available")
+        try:
+            application.job_queue.run_daily(daily_summary, time=target_time)
+            print("ตั้งค่าการแจ้งเตือนรายวันสำเร็จ")
+        except Exception as e:
+            print(f"ไม่สามารถตั้งค่าการแจ้งเตือนรายวัน: {e}")
     
     # เริ่มการทำงานของบอท
+    print("บอทเริ่มทำงานแล้ว...")
     application.run_polling()
 
 if __name__ == '__main__':
