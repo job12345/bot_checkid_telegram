@@ -202,23 +202,23 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await query.answer()  # ตอบกลับ callback query เพื่อหยุดการโหลด
     
-    today = date.today()  # ใช้ date.today() แทน datetime.date.today()
+    current_date = datetime.now().date()  # ใช้ datetime.now().date() แทน date.today()
     
     if query.data == "report_today":
         # รายงานวันนี้
-        today_iso = today.isoformat()
+        today_iso = current_date.isoformat()
         count = usage_data[today_iso]
         message = f"📊 *รายงานวันนี้ ({today_iso})*\n\nจำนวนผู้ใช้งานวันนี้: *{count}* คน"
         await query.edit_message_text(text=message, parse_mode="Markdown", reply_markup=get_owner_keyboard())
         
     elif query.data == "report_week":
         # รายงานสัปดาห์นี้
-        start_of_week = today - datetime.timedelta(days=today.weekday())
+        start_of_week = current_date - timedelta(days=current_date.weekday())
         report = "📅 *รายงานรายสัปดาห์*\n\n"
         total = 0
         
         for i in range(7):
-            date = start_of_week + datetime.timedelta(days=i)
+            date = start_of_week + timedelta(days=i)
             date_iso = date.isoformat()
             count = usage_data[date_iso]
             total += count
@@ -230,9 +230,9 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     elif query.data == "report_month":
         # รายงานเดือนนี้
-        first_day = today.replace(day=1)
+        first_day = current_date.replace(day=1)
         month_name = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", 
-                      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"][today.month - 1]
+                      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"][current_date.month - 1]
         
         report = f"📈 *รายงานเดือน{month_name}*\n\n"
         total = 0
@@ -240,13 +240,13 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # สรุปเป็นรายสัปดาห์
         current_week = 1
         week_start = first_day
-        while week_start.month == today.month:
-            week_end = min(week_start + datetime.timedelta(days=6), 
-                          today.replace(day=1, month=today.month+1) - datetime.timedelta(days=1))
+        while week_start.month == current_date.month:
+            week_end = min(week_start + timedelta(days=6), 
+                          current_date.replace(day=1, month=current_date.month+1) - timedelta(days=1))
             
             week_count = 0
             for i in range((week_end - week_start).days + 1):
-                date = week_start + datetime.timedelta(days=i)
+                date = week_start + timedelta(days=i)
                 date_iso = date.isoformat()
                 week_count += usage_data[date_iso]
             
@@ -254,7 +254,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             report += f"สัปดาห์ที่ {current_week} ({week_start.day}-{week_end.day}): *{week_count}* คน\n"
             
             current_week += 1
-            week_start = week_end + datetime.timedelta(days=1)
+            week_start = week_end + timedelta(days=1)
         
         report += f"\nรวมทั้งเดือน: *{total}* คน"
         await query.edit_message_text(text=report, parse_mode="Markdown", reply_markup=get_owner_keyboard())
