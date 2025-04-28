@@ -6,12 +6,18 @@
 พัฒนาโดย: MR.j
 """
 
+import os
 import logging
 import datetime
 import pytz
-from collections import defaultdict
+from collections import defaultdict, Counter
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler, JobQueue
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler
+
+# โหลดค่าจาก .env file
+load_dotenv()
 
 # ตั้งค่า logging
 logging.basicConfig(
@@ -19,16 +25,77 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-# Token ของบอท
-TOKEN = "7723527281:AAFvrx8JJbQjDASvcSNkKcwPkUXy3BeYmk8"
+# ใช้ค่าจาก environment variables
+TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+OWNER_ID = int(os.getenv('OWNER_ID', '805215455'))
+RATE_LIMIT = int(os.getenv('RATE_LIMIT', '5'))
+TIME_WINDOW = int(os.getenv('TIME_WINDOW', '60'))
 
-# เก็บข้อมูลการใช้งาน
+# เก็บข้อมูลการใช้งานและ rate limiting
 usage_data = defaultdict(int)
-OWNER_ID = 805215455
+user_message_count = Counter()
+user_last_reset = defaultdict(datetime.now)
 
-# ฟังก์ชันสำหรับคำสั่ง /start
+# ฟังก์ชันตรวจสอบ rate limit
+async def check_rate_limit(user_id: int) -> bool:
+    now = datetime.now()
+    if (now - user_last_reset[user_id]).seconds > TIME_WINDOW:
+        user_message_count[user_id] = 0
+        user_last_reset[user_id] = now
+    
+    user_message_count[user_id] += 1
+    return user_message_count[user_id] <= RATE_LIMIT
+
+# ฟังก์ชันตรวจสอบความถูกต้องของผู้ใช้
+def is_valid_user(user) -> bool:
+    if not user:
+        return False
+    
+    if user.is_bot:
+        return False
+    
+    if user.username:
+        unsafe_chars = '<>{}[]()\'"`'
+        if any(c in user.username for c in unsafe_chars):
+            return False
+    
+    return True
+
+# Decorator สำหรับจัดการข้อผิดพลาด
+def error_handler(func):
+    async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        try:
+            return await func(update, context)
+        except Exception as e:
+            logging.error(f"Error in {func.__name__}: {str(e)}")
+            if context.bot:
+                await context.bot.send_message(
+                    chat_id=OWNER_ID,
+                    text=f"❌ เกิดข้อผิดพลาด: {str(e)}"
+                )
+            await update.message.reply_text(
+                "ขออภัย เกิดข้อผิดพลาดบางอย่าง กรุณาลองใหม่อีกครั้งในภายหลัง"
+            )
+    return wrapper
+
+@error_handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
+    
+    # ตรวจสอบ rate limit
+    if not await check_rate_limit(user.id):
+        await update.message.reply_text(
+            "คุณส่งคำขอมากเกินไป กรุณารอสักครู่แล้วลองใหม่อีกครั้ง"
+        )
+        return
+    
+    # ตรวจสอบความถูกต้องของผู้ใช้
+    if not is_valid_user(user):
+        await update.message.reply_text(
+            "ไม่สามารถดำเนินการได้ กรุณาติดต่อผู้ดูแลระบบ"
+        )
+        return
+    
     usage_data[datetime.date.today().isoformat()] += 1
 
     # สร้างปุ่ม inline ทั่วไป
