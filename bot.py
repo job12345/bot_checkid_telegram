@@ -8,10 +8,9 @@
 
 import os
 import logging
-import datetime
+from datetime import datetime, timedelta, time
 import pytz
 from collections import defaultdict, Counter
-from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -294,7 +293,7 @@ def main():
     
     # ตั้งเวลาสรุปยอดรายวันเวลา 12:00 น. เวลาประเทศไทย (UTC+7)
     thai_tz = pytz.timezone('Asia/Bangkok')
-    target_time = datetime.time(hour=12, minute=0, tzinfo=thai_tz)
+    target_time = time(hour=12, minute=0)  # ไม่ต้องใส่ tzinfo ใน time object
     
     # ตั้งค่า job queue
     if application.job_queue:
