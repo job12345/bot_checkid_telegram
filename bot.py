@@ -8,7 +8,7 @@
 
 import os
 import logging
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, date
 import pytz
 from collections import defaultdict, Counter
 from dotenv import load_dotenv
@@ -101,7 +101,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
     
-    usage_data[datetime.date.today().isoformat()] += 1
+    # บันทึกการใช้งาน
+    today = date.today().isoformat()
+    usage_data[today] += 1
 
     # สร้างปุ่ม inline ทั่วไป
     keyboard = [
